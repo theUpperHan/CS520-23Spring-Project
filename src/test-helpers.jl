@@ -62,10 +62,8 @@ function test(problem_name::String, info=true)
             diff = correct_ov-op_val
             absolute_diff = abs(diff)
             relative_diff = abs(diff/correct_ov)
-            if info
-                println("Absolute difference: ", absolute_diff)
-                println("Relative difference: ", relative_diff)
-            end
+            println("Absolute difference: ", absolute_diff)
+            println("Relative difference: ", relative_diff)
             
             if relative_diff < 1e-3
                 println(GREEN, "Result is consistent with correct optimal value", RESET)
