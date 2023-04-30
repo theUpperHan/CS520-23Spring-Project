@@ -50,7 +50,7 @@ function test(problem_name::String, info=true)
         @printf("Not solution found after max iteration.\n")
     end
     
-    @printf("\n======================Comparison========================\n")
+    @printf("======================Comparison========================\n")
     
     if (correct_ov != Inf && !solution.flag) || (correct_ov == Inf && solution.flag)
         println(RED, "Not matched with correct result", RESET)
