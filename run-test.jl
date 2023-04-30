@@ -1,8 +1,7 @@
-include("test-helpers.jl")
+include("src/test-helpers.jl")
 
 
 if isempty(ARGS)
-    println(ARGS)
     problems = ["lp_afiro","lp_brandy","lp_fit1d","lp_adlittle",
                 "lp_agg","lp_ganges","lp_stocfor1", "lp_25fv47", "lpi_chemcom"]
 
@@ -37,6 +36,3 @@ else
         end
     end
 end
-
-
-# 
