@@ -16,6 +16,8 @@ Or, to run solver on one problem:
 
 where [problem name] is the problem name on [LPNetLib](https://netlib.org/lp/data/index.html), no "LPNetLib/" prefix needed.
 
+*We also provide the jupyter notebook here, if that is prefered*
+
 ## Comparing Results
 
 The test compares result with the result of GLPK optimizer, which sometimes is inaccurate or incorrect since there may be more parameters that need to be configurate. The actual result of these LP problems can be found at [Problem Summary](https://netlib.org/lp/data/readme) provided by NetLib.ORG (we also use the summary here to compare with in our report).
