@@ -5,7 +5,7 @@ using AMD, LinearAlgebra
 using Statistics 
 using Printf
 using HTTP
-using JuMP, GLPK
+using Markdown
 
 # Functions
 include("prob-structs.jl")

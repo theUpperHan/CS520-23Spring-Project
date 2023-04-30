@@ -2,6 +2,8 @@ const RESET = "\033[0m"
 const RED = "\033[31m"
 const GREEN = "\033[32m"
 const WHITE = "\033[37m"
+const YELLOW = "\033[33m"
+
 
 mutable struct IplpSolution
     x::Vector{Float64} # the solution vector 

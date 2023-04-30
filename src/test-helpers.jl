@@ -1,8 +1,46 @@
 include("iplp.jl")
 
+function get_correct_ov(problem_name)
+    if occursin("lpi", problem_name)
+       return Inf
+    end
+    md_info = split(Markdown.plain(mdinfo("LPnetlib/" * problem_name)), "\n")
+    header_line = "Name       Rows   Cols   Nonzeros    Bytes  BR      Optimal Value"
+    header_idx = -1
+    summary = ""
+    for i in 1:length(md_info)
+        if occursin(header_line, md_info[i])
+            header_idx = i
+            break
+        end
+    end
+    
+    summary = strip(md_info[header_idx+1], ['*',  ' '])
+    pattern = r"(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S{0,1})\s+(-?\d+\.\d+E[+-]\d+)"
+    m = match(pattern, summary)
+    if m !== nothing
+        parsed_dict = Dict(
+            "Name" => m.captures[1],
+            "Rows" => parse(Int, m.captures[2]),
+            "Cols" => parse(Int, m.captures[3]),
+            "Nonzeros" => parse(Int, m.captures[4]),
+            "Bytes" => parse(Int, m.captures[5]),
+            "BR" => m.captures[6],
+            "OV" => parse(Float64, m.captures[7])
+        )
+    else
+        println("No match found")
+        parsed_dict = nothing
+    end
+
+    return parsed_dict["OV"]   
+end
+
 function test(problem_name::String, info=true)
     md = mdopen("LPnetlib/" * problem_name)
     pb = convert_matrixdepot(md)
+
+    correct_ov = get_correct_ov(problem_name)
 
     solution, op_val = iplp(pb, info)
     
@@ -12,39 +50,32 @@ function test(problem_name::String, info=true)
         @printf("Not solution found after max iteration.\n")
     end
     
-    if info
-        @printf("\n======================Comparison========================\n")
-    end
+    @printf("\n======================Comparison========================\n")
     
-    A = md.A
-    b = md.b
-    c = md.c
-    m, n = size(A)
-    model = Model(with_optimizer(GLPK.Optimizer))
-    
-    @variable(model, x[1:n] >= 0)
-    @objective(model, Min, sum(c[i] * x[i] for i in 1:n))
-    for i in 1:m
-        @constraint(model, sum(A[i, j] * x[j] for j in 1:n) <= b[i])
-    end
-    optimize!(model)
-
-    if termination_status(model) == MOI.OPTIMAL
-        optimal_solution = value.(x)
-        optimal_objective = objective_value(model)
-        diff = optimal_objective-op_val
-        absolute_diff = abs(diff)
-        relative_diff = abs(diff/optimal_objective)
-        if info
-            println("GLPK Solution: ", optimal_objective)
-            println("Absolute difference: ", absolute_diff)
-            println("Relative difference: ", relative_diff)
-        end
-        return (abs=absolute_diff, rel=relative_diff, op=op_val)
+    if (correct_ov != Inf && !solution.flag) || (correct_ov == Inf && solution.flag)
+        println(RED, "Not matched with correct result", RESET)
     else
-        println("No optimal solution found by GLPK solver.")
-        return (abs=-1, rel=-1, op=op_val)
+        if correct_ov == Inf
+            println(GREEN, "Successfully detect infeasibility", RESET)
+        else
+            println("Checking difference...")
+            diff = correct_ov-op_val
+            absolute_diff = abs(diff)
+            relative_diff = abs(diff/correct_ov)
+            if info
+                println("Absolute difference: ", absolute_diff)
+                println("Relative difference: ", relative_diff)
+            end
+            
+            if relative_diff < 1e-3
+                println(GREEN, "Result is consistent with correct optimal value", RESET)
+            else
+                println(RED, "Result is wrong", GREEN)
+            end
+        end
     end
+
+    return (cov=correct_ov, op=op_val)
 end
 
 function prompt_test(info=true)

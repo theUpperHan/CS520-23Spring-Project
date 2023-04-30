@@ -13,7 +13,7 @@ if isempty(ARGS)
             if D.op != -1
                 println(GREEN, "Optimal Value: ", D.op, RESET)
             else
-                println(RED, "No solution found,\nturn on info or see previous report", RESET)
+                println(YELLOW, "No solution found due of infeasibility or needs more iterations\n", RESET)
             end
         catch e
             println(RED, "An error occurred: ", e, RESET)
@@ -28,8 +28,6 @@ else
             D = test(filename)
             if D.op != -1
                 println(GREEN, "Optimal Value: ", D.op, RESET)
-            else
-                println(RED, "No solution found,\nturn on info or see previous report", RESET)
             end
         catch e
             rintln(RED, "An error occurred: ", e, RESET)
