@@ -1,6 +1,6 @@
 function predictor_corrector(P::IplpProblem, info=true, tol=1e-8, maxit=100)    
     iter = 0
-    SP = starting_point(P)
+    SP = starting_point(P, false)
     GAMMA = select_gamma(P) #limit step length
     m,n = size(P.A)
     

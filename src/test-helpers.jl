@@ -32,7 +32,7 @@ function get_correct_ov(problem_name)
         println("No match found")
         parsed_dict = nothing
     end
-
+    
     return parsed_dict["OV"]   
 end
 
@@ -42,8 +42,12 @@ function test(problem_name::String, info=true)
 
     correct_ov = get_correct_ov(problem_name)
 
-    solution, op_val = iplp(pb, info)
+    res = @timed iplp(pb, info)
     
+    solution, op_val = res.value
+    elapsed_time = res.time
+    println("IPLP solver takes: ", elapsed_time, " seconds to finish.")
+
     if solution.flag
         @printf("Solution found.\n")
     else

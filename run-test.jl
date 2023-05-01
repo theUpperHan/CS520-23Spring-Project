@@ -5,6 +5,9 @@ if isempty(ARGS)
     problems = ["lp_afiro","lp_brandy","lp_fit1d","lp_adlittle",
                 "lp_agg","lp_ganges","lp_stocfor1", "lp_25fv47", "lpi_chemcom"]
 
+    problems_extra = ["lp_agg2", "lp_woodw", "lp_beaconfd", "lp_standata", "lp_degen2"
+                        ,"lp_e226", "lp_grow15", "lpi_klein2", "lpi_vol1", "lpi_bgprtr"]
+
     println("\nPerforming essential tests now....\n")
     for problem_name in problems
         try
@@ -30,7 +33,7 @@ else
                 println(GREEN, "Optimal Value: ", D.op, RESET)
             end
         catch e
-            rintln(RED, "An error occurred: ", e, RESET)
+            println(RED, "An error occurred: ", e, RESET)
         end
     end
 end
