@@ -1,5 +1,7 @@
 # CS 520 Spring 23 - Project Choice #2
 
+Authors: Yunhan Huang and Jiasong Dong
+
 Primal-Dual Interior-Point Method Solver for LP Problems
 
 ## Run test(s)
