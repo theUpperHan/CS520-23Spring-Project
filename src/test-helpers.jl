@@ -1,4 +1,4 @@
-include("iplp.jl")
+include("project2.jl")
 
 function get_correct_ov(problem_name)
     if occursin("lpi", problem_name)

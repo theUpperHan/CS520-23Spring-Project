@@ -30,7 +30,7 @@ function remove_zero_columns(problem::IplpProblem)
     # Adjust the constraint vector b
     problem.b -= problem.A * x_values[setdiff(1:length(x_values), zero_columns)]
 
-    return problem
+    return problem, zero_columns
 end
 
 function remove_zero_rows(problem::IplpProblem)
@@ -38,7 +38,7 @@ function remove_zero_rows(problem::IplpProblem)
     non_zero_rows = setdiff(1:size(problem.A, 1), zero_rows)
     problem.A = problem.A[non_zero_rows, :]
     problem.b = problem.b[non_zero_rows]
-    return problem
+    return problem, zero_rows
 end
 
 
@@ -49,48 +49,46 @@ end
 ###############################
 
 function convert_to_standard_form(P::IplpProblem)
-    inf = 1.0e300
-    m, n0 = size(P.A)
+    inf_val = 1.0e300
 
-    # Initialize new matrices and vectors
-    A_new = spzeros(m, 0)
-    c_new = Vector{Float64}()
+    rows, cols = size(P.A)
 
-    for i in 1:n0
-        lo_inf = P.lo[i] < -inf
-        hi_inf = P.hi[i] > inf
+    unbounded_idx = Int64[]
+    lower_bounded_idx = Int64[]
+    upper_bounded_idx = Int64[]
+    doubly_bounded_idx = Int64[]
+    n = Int64[0, 0, 0, 0]
 
-        if lo_inf && hi_inf
-            # x_i is unbounded: introduce x_i_pos and x_i_neg
-            A_new = [A_new P.A[:, i] -P.A[:, i]]
-            append!(c_new, [P.c[i], -P.c[i]])
-        elseif lo_inf
-            # x_i has an upper bound only: negate x_i
-            A_new = [A_new -P.A[:, i]]
-            append!(c_new, -P.c[i])
+    for i = 1:cols
+        if P.lo[i] < -inf_val
+            if P.hi[i] > inf_val
+                n[1] += 1
+                push!(unbounded_idx, i)
+            else
+                n[3] += 1
+                push!(upper_bounded_idx, i)
+            end
         else
-            # x_i has a lower bound (or both): shift x_i
-            A_new = [A_new P.A[:, i]]
-            append!(c_new, P.c[i])
-            P.b -= P.A[:, i] * P.lo[i]
+            if P.hi[i] > inf_val
+                n[2] += 1
+                push!(lower_bounded_idx, i)
+            else
+                n[4] += 1
+                push!(doubly_bounded_idx, i)
+            end
         end
     end
 
-    # Add slack variables for bounded variables
-    idx_bounded = findall(x -> x > -inf && x < inf, P.hi)
-    A_new = [A_new spzeros(m, length(idx_bounded))]
-    c_new = vcat(c_new, zeros(length(idx_bounded)))
-    I_bounded = Matrix{Float64}(I, length(idx_bounded), length(idx_bounded))
+    c_standard = [P.c[unbounded_idx]; -P.c[unbounded_idx]; P.c[lower_bounded_idx];
+                  -P.c[upper_bounded_idx]; P.c[doubly_bounded_idx]; zeros(n[4])]
 
-    As = [A_new; spzeros(length(idx_bounded), n0) I_bounded]
-    bs = vcat(P.b, P.hi[idx_bounded] - P.lo[idx_bounded])
-    cs = c_new
+    A_standard = [P.A[:, unbounded_idx] -P.A[:, unbounded_idx] P.A[:, lower_bounded_idx] -P.A[:, upper_bounded_idx] P.A[:, doubly_bounded_idx] spzeros(rows, n[4]);
+                  spzeros(n[4], 2 * n[1] + n[2] + n[3]) Matrix{Float64}(I, n[4], n[4]) Matrix{Float64}(I, n[4], n[4])]
 
-    lo_new = zeros(size(As, 2))
-    hi_new = ones(size(As, 2)) * inf
-    standard_form_ip = IplpProblem(cs, As, bs, lo_new, hi_new)
+    b_standard = [P.b - P.A[:, lower_bounded_idx] * P.lo[lower_bounded_idx] - P.A[:, upper_bounded_idx] * P.hi[upper_bounded_idx] - P.A[:, doubly_bounded_idx] * P.lo[doubly_bounded_idx];
+                  P.hi[doubly_bounded_idx] - P.lo[doubly_bounded_idx]]
 
-    return standard_form_ip
+    return A_standard, b_standard, c_standard, unbounded_idx, lower_bounded_idx, upper_bounded_idx, doubly_bounded_idx
 end
 
 

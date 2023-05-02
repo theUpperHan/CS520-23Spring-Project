@@ -108,3 +108,40 @@ function select_gamma(P::IplpProblem)
     
     return gamma
 end
+
+function convert_x(P, zero_columns, unbounded_idx, lower_bounded_idx, upper_bounded_idx, doubly_bounded_idx, xs)
+    m, n = size(P.A)
+    x1 = Array{Float64}(undef, n)
+    fill!(x1, Inf)
+    j = 1
+    for i = 1:n
+        if x1[i] == Inf
+            if i in zero_columns
+                if P.c[i] > 0
+                    x1[i] = P.lo[i]
+                elseif P.c[i] < 0
+                    x1[i] = P.hi[i]
+                else
+                    x1[i] = 0.
+                end
+            else
+                x1[i] = xs[j]
+                j += 1
+            end
+        end
+    end
+
+    n1 = length(unbounded_idx)
+    n2 = length(lower_bounded_idx)
+    n3 = length(upper_bounded_idx)
+    n4 = length(doubly_bounded_idx)
+
+    x = zeros(n)
+
+    x[unbounded_idx] = x1[1:n1] - x1[1 + n1:2 * n1]
+    x[lower_bounded_idx] = x1[1 + 2 * n1:n2 + 2 * n1] + P.lo[lower_bounded_idx]
+    x[upper_bounded_idx] = P.hi[upper_bounded_idx] - x1[1 + 2 * n1 + n2:n3 + 2 * n1 + n2]
+    x[doubly_bounded_idx] = x1[1 + 2 * n1 + n2 + n3:n4 + 2 * n1 + n2 + n3] + P.lo[doubly_bounded_idx]
+
+    return x
+end
