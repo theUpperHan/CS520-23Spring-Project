@@ -56,6 +56,6 @@ function iplp(P::IplpProblem, info=true, tol=1e-8, maxit=100)
   return IplpSolution(vec(x),flag,vec(stdpb.c),stdpb.A,vec(stdpb.b),vec(x_sol),vec(λ_sol),vec(s_sol))
 end
 
-md = mdopen("LPnetlib/lpi_klein2")
-pb = convert_matrixdepot(md)
-sol = @time iplp(pb)
+# md = mdopen("LPnetlib/lpi_klein2")
+# pb = convert_matrixdepot(md)
+# sol = @time iplp(pb)
