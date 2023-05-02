@@ -4,6 +4,10 @@ Authors: Yunhan Huang and Jiasong Dong
 
 Primal-Dual Interior-Point Method Solver for LP Problems
 
+## IPLP Solution
+
+⭐ The IPLP function locates at `src/project2.jl`.
+
 ## Run test(s)
 
 After cloning the github repository, run:
